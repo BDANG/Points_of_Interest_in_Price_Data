@@ -20,3 +20,4 @@ The project's purpose is to indicate the start and end points whenever a variabl
 * Python 3.6.3
 * Numpy
 * Pandas
+* Plot.ly (works with virtualenv more friendly than matplotlib)
