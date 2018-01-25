@@ -155,5 +155,10 @@ def valid_args(args):
 # initial handling
 if __name__ == "__main__":
     if not valid_args(sys.argv):
+        print("\nARGUMENTS:")
+        print("<input_file.csv> - a two column/header csv. i.e. timestamp, price")
+        print("<threshold> - a percent unit threshold that specifies what is considered a significant breakout. `<threshold>=10` represents a 10% jump.")
+        print("<window_size> - the size of a sliding window. The number of x-values (timestamp) per window. A single pair of start/end are located for a given window.")
+        print("<output_file.csv> - an output csv with 2 columns/headers: start,end")
         sys.exit(-1)
     main(sys.argv[1], float(sys.argv[2])/100.0, int(sys.argv[3]), sys.argv[4])
