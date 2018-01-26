@@ -77,6 +77,10 @@ def valid_args(args):
 if __name__ == "__main__":
     if not valid_args(sys.argv):
         print ("\nARGUMENTS:")
+        print("<input_file.csv> - the original two column csv used in find_poi.py")
+        print("<poi.csv> - the csv of points of interest created by find_poi.py")
+        print("<padding> - an integer specifying the number of x-values to pad the left and right side of the breakout")
+        print("[output_directory/] - an OPTIONAL directory for saving the plots.")
         sys.exit(-1)
 
     if len(sys.argv) == MIN_ARGS:
