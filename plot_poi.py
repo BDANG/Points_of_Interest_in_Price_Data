@@ -7,7 +7,9 @@ MIN_ARGS = 4
 
 def main(dataCsvPath, poiCsvPath, padding, outputDir=None):
     # load the entire data set into a dataframe
-    data = pd.read_csv(dataCsvPath, names=["x", "y"])
+    data = pd.read_csv(dataCsvPath, header=0)
+    xCol = data.columns[0]
+    yCol = data.columns[1]
 
     # load the points of interest into a dataframe
     # columns: index_start, index_end, x_start, x_end
@@ -33,21 +35,21 @@ def main(dataCsvPath, poiCsvPath, padding, outputDir=None):
         print(row["index_end"])
 
         lineplot = go.Scatter(
-                x = dataSlice["x"],
-                y = dataSlice["y"],
+                x = dataSlice[xCol],
+                y = dataSlice[yCol],
                 name = "Data")
 
         startPoint = go.Scatter(
-                x = [row["x_start"]],
-                y = [dataSlice.loc[row["index_start"]]["y"]],
+                x = [row[xCol+"_start"]],
+                y = [dataSlice.loc[row["index_start"]][yCol]],
                 mode = 'markers',
                 name = "Start",
                 line = {"color": "red"}
                 )
 
         endPoint = go.Scatter(
-                x = [row["x_end"]],
-                y = [dataSlice.loc[row["index_end"]]["y"]],
+                x = [row[xCol+"_end"]],
+                y = [dataSlice.loc[row["index_end"]][yCol]],
                 mode = 'markers',
                 name = "End",
                 line = {"color": "red"}
@@ -62,8 +64,8 @@ def main(dataCsvPath, poiCsvPath, padding, outputDir=None):
             plot(plotdata, filename=
                                 outputDir
                                 +dataCsvPath.split("/")[-1].rstrip(".csv")
-                                +"_"+row["x_start"]
-                                +"_"+row["x_end"])
+                                +"_"+row[xCol+"_start"]
+                                +"_"+row[xCol+"_end"])
         else: # no need to save the plots
             plot(plotdata)
             input("Enter to continue.")
