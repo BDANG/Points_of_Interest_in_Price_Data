@@ -56,18 +56,28 @@ def main(dataCsvPath, poiCsvPath, padding, outputDir=None):
                 )
 
         plotdata = [lineplot, startPoint, endPoint]
+        plotlayout = go.Layout(
+            title="Breakout between "+str(row[xCol+"_start"])+" and "+str(row[xCol+"_end"]),
+            xaxis={
+                "title": xCol
+                },
+            yaxis={
+                "title": yCol
+                }
+        )
 
+        figure = go.Figure(data=plotdata, layout=plotlayout)
 
 
         # outputDir != None --> save the plots
         if outputDir:
-            plot(plotdata, filename=
+            plot(figure, filename=
                                 outputDir
                                 +dataCsvPath.split("/")[-1].rstrip(".csv")
                                 +"_"+row[xCol+"_start"]
                                 +"_"+row[xCol+"_end"])
         else: # no need to save the plots
-            plot(plotdata)
+            plot(figure)
             input("Enter to continue.")
 
 
