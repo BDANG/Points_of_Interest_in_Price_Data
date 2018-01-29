@@ -29,11 +29,6 @@ def main(dataCsvPath, poiCsvPath, padding, outputDir=None):
 
         dataSlice = data.iloc[graphStart:graphEnd+1]
 
-        print(graphStart, graphEnd)
-        print(dataSlice)
-        print(row["index_start"])
-        print(row["index_end"])
-
         lineplot = go.Scatter(
                 x = dataSlice[xCol],
                 y = dataSlice[yCol],
