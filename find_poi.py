@@ -42,10 +42,10 @@ def favorable_max_decrement(previous, current, minCheckpoints, threshold):
         return False
 
 
-def narrow_start_end(indexMin, indexMax, window, threshold):
+def narrow_start_end(indexMin, indexMax, window, xCol, yCol, threshold):
     # init the min and max values as "previous"
-    previousMinValue = window["y"].loc[indexMin]
-    previousMaxValue = window["y"].loc[indexMax]
+    previousMinValue = window[yCol].loc[indexMin]
+    previousMaxValue = window[yCol].loc[indexMax]
 
     # verify that threshold is covered
 
@@ -64,13 +64,13 @@ def narrow_start_end(indexMin, indexMax, window, threshold):
     while indexMin <= indexMax:
         # check the next min value
         indexMin+=1
-        currentMinValue = window["y"].loc[indexMin]
+        currentMinValue = window[yCol].loc[indexMin]
         if favorable_min_increment(previousMinValue, currentMinValue, maxCheckpoints, threshold):
             minCheckpoints.append((indexMin, currentMinValue))
 
         # decrement indexMax
         indexMax-=1
-        currentMaxValue = window["y"].loc[indexMax]
+        currentMaxValue = window[yCol].loc[indexMax]
         if favorable_max_decrement(previousMaxValue, currentMaxValue, minCheckpoints, threshold):
             maxCheckpoints.append((indexMax, currentMaxValue))
 
@@ -94,14 +94,14 @@ def narrow_start_end(indexMin, indexMax, window, threshold):
     # the index of the end
     # the x value of the start
     # the x value of the end
-    return True, bestMinIndex, bestMaxIndex, window["x"].loc[bestMinIndex], window["x"].loc[bestMaxIndex]
+    return True, bestMinIndex, bestMaxIndex, window[xCol].loc[bestMinIndex], window[xCol].loc[bestMaxIndex]
 
 
 
-def search_window(window, threshold):
+def search_window(window, xCol, yCol, threshold):
 
-    indexMin = window["y"].idxmin()
-    indexMax = window["y"].idxmax()
+    indexMin = window[yCol].idxmin()
+    indexMax = window[yCol].idxmax()
 
     # WIP: currently force directionality
     # i.e. the program only works for uptrending breakouts, not downtrending
@@ -109,12 +109,15 @@ def search_window(window, threshold):
         return False, 0, 0, 0, 0
 
     # redundant / also search_window() barely does anything...
-    valid, indexStart, indexEnd, xStart, xEnd = narrow_start_end(indexMin, indexMax, window, threshold)
+    valid, indexStart, indexEnd, xStart, xEnd = narrow_start_end(indexMin, indexMax, window, xCol, yCol, threshold)
     return valid, indexStart, indexEnd, xStart, xEnd
 
 def main(inputFilePath, threshold, windowSize, outputFilePath):
     # load the csv data into a dataframe
-    data = pd.read_csv(inputFilePath, names=["x", "y"])
+    data = pd.read_csv(inputFilePath, header=0)
+    xCol = data.columns[0]
+    yCol = data.columns[1]
+
 
     # WIP: be wary of breakout pairs with the same end index
     breakoutPairs = set()
@@ -129,20 +132,20 @@ def main(inputFilePath, threshold, windowSize, outputFilePath):
             break
 
         # search for points of interest
-        found, indexStart, indexEnd, xStart, xEnd = search_window(window, threshold)
+        found, indexStart, indexEnd, xStart, xEnd = search_window(window, xCol, yCol, threshold)
         if found:
             breakoutPairs.add((indexStart, indexEnd))
 
     # save the poi
     outputfile = open(outputFilePath, 'w')
-    writer = csv.DictWriter(outputfile, fieldnames=["index_start", "index_end", "x_start", "x_end"], delimiter=',')
+    writer = csv.DictWriter(outputfile, fieldnames=["index_start", "index_end", xCol+"_start", xCol+"_end"], delimiter=',')
     writer.writeheader()
     for poi in breakoutPairs:
         writer.writerow({
                         "index_start": poi[0],
                         "index_end": poi[1],
-                        "x_start": data["x"][poi[0]],
-                        "x_end": data["x"][poi[1]]
+                        xCol+"_start": data[xCol][poi[0]],
+                        xCol+"_end": data[xCol][poi[1]]
                         })
 
 
@@ -156,9 +159,13 @@ def valid_args(args):
 if __name__ == "__main__":
     if not valid_args(sys.argv):
         print("\nARGUMENTS:")
-        print("<input_file.csv> - a two column/header csv. i.e. timestamp, price")
+        print("<input_file.csv> - a two column csv. THE FIRST ROW IS A HEADER i.e. timestamp,price")
         print("<threshold> - a percent unit threshold that specifies what is considered a significant breakout. `<threshold>=10` represents a 10% jump.")
         print("<window_size> - the size of a sliding window. The number of x-values (timestamp) per window. A single pair of start/end are located for a given window.")
-        print("<output_file.csv> - an output csv with 2 columns/headers: start,end")
+        print("<output_file.csv> - an output csv with 4 columns:")
+        print("\tindex_start - the dataframe index for the start of the breakout")
+        print("\tindex_end - the dataframe index for the end of the breakout")
+        print("\t<x>_start - the x-value for the start of the breakout")
+        print("\t<x>_end - the x-value for the end of the breakout")
         sys.exit(-1)
     main(sys.argv[1], float(sys.argv[2])/100.0, int(sys.argv[3]), sys.argv[4])
